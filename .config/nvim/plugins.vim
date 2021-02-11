@@ -21,6 +21,10 @@ endif
 call plug#begin('~/.config/nvim/plugged')
 
 " === Editing Plugins === "
+
+Plug 'vimwiki/vimwiki'
+Plug 'tbabej/taskwiki'
+
 " Trailing whitespace highlighting & automatic fixing
 Plug 'ntpeters/vim-better-whitespace'
 
@@ -93,9 +97,8 @@ Plug 'othree/yajs.vim'
 Plug 'scrooloose/nerdtree'
 
 " Colorscheme
-Plug 'mhartington/oceanic-next'
 Plug 'morhetz/gruvbox'
-Plug 'altercation/vim-colors-solarized'
+Plug 'cormacrelf/vim-colors-github'
 
 " Customized vim status line
 Plug 'vim-airline/vim-airline'
@@ -116,6 +119,7 @@ Plug 'reedes/vim-pencil'
 
 " Markdown preview
 Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app & yarn install'  }
+Plug 'mzlogin/vim-markdown-toc'
 
 " Interactive scratchpad (Quokka in Vscode)
 Plug 'metakirby5/codi.vim'

@@ -5,6 +5,11 @@ source ~/.config/nvim/plugins.vim
 " ===                           EDITING OPTIONS                            === "
 " ============================================================================ "
 
+" For vim wiki
+set nocompatible
+filetype plugin on
+syntax on
+
 " Remap leader key to ,
 let g:mapleader=','
 
@@ -289,6 +294,9 @@ colorscheme gruvbox
 let g:gruvbox_contrast_dark = 'medium'
 let g:gruvbox_contrast_light = 'hard'
 
+" Toggle color
+nn <expr> <F5> g:colors_name == "gruvbox" ? ":colo github\<CR>" : ":set background=dark\<CR>:color gruvbox\<CR>"
+
 " Vim airline theme
 let g:airline_theme='gruvbox'
 
@@ -379,7 +387,6 @@ function LedgerSort()
     :%! ledger -f - print --sort 'date, amount'
     :%LedgerAlign
 endfunction
-command LedgerSort call LedgerSort()
 
 " ============================================================================ "
 " ===                             KEY MAPPINGS                             === "
@@ -574,7 +581,16 @@ endif
 
 autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
 
-let g:vim_markdown_folding_disabled = 1
+let g:vim_markdown_folding_disabled = 0
+
+let g:vimwiki_list = [{'path':'/home/ss/projects/note/wiki', 'syntax': 'markdown', 'ext': '.md' }]
+let g:vimwiki_ext2syntax = { '.md': 'markdown', '.markdown': 'markdown', '.mdown': 'markdown' }
+
+" makes vimwiki markdown links as [text](text.md)
+let g:vimwiki_markdown_link_ext = 1
+
+let g:taskwiki_markup_syntax = 'markdown'
+let g:markdown_folding = 1
 
 " ========================== "
 " === javascript folding === "
@@ -596,9 +612,8 @@ function! TurboLog() abort
   " TODO: use regex to find function name. 2 possible ways:
   " 1. const funcName = () => {
   " 2. function funcName() {
-  let l:funcName = getline(search('\v^[[:alpha:]$_]', "bn", 1, 100))
-  let l:str = "console.log(\"TCL: "
-  let l:str = l:str . l:funcName . ' -> ' . l:word . ' ", ' . l:word
+  let l:str = "console.log(\`TCL: "
+  let l:str = l:str . ' -> ' . l:word . ' `, ' . l:word
   let l:str = l:str . ")"
 
   call append('.', l:str)
