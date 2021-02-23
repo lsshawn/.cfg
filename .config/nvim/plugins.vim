@@ -23,7 +23,6 @@ call plug#begin('~/.config/nvim/plugged')
 " === Editing Plugins === "
 
 Plug 'vimwiki/vimwiki'
-Plug 'tbabej/taskwiki'
 
 " Trailing whitespace highlighting & automatic fixing
 Plug 'ntpeters/vim-better-whitespace'
@@ -48,6 +47,7 @@ let g:coc_global_extensions = [
       \'coc-python',
       \'coc-eslint',
       \'coc-tslint',
+      \'coc-ultisnips',
       \'coc-emmet',
       \'coc-css',
       \'coc-python'
@@ -57,6 +57,7 @@ let g:coc_global_extensions = [
 Plug 'christoomey/vim-tmux-navigator'
 
 " Denite - Fuzzy finding, buffer management
+Plug 'haya14busa/incsearch.vim'
 Plug 'Shougo/denite.nvim'
 
 " Snippet support

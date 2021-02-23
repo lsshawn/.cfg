@@ -53,7 +53,7 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
 # Set location of z installation
-. /home/ss/scripts/z/z.sh
+. /home/ss/z.sh
 
 ## FZF FUNCTIONS ##
 
@@ -129,6 +129,7 @@ source $(dirname $(gem which colorls))/tab_complete.sh
 
 # Aliases
 alias vim="nvim"
+alias python="python3"
 alias top="vtop --theme=wizard"
 alias ls="colorls -lA --sd"
 
@@ -181,4 +182,3 @@ export NVM_DIR=~/.nvm
 alias dotfiles="/usr/bin/env git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME"
 
 export PATH=$HOME/.local/bin:$PATH
-alias config='/usr/bin/git --git-dir=/home/ss/.cfg/ --work-tree=/home/ss'

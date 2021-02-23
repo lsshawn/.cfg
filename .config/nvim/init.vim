@@ -48,16 +48,11 @@ set noruler
 " Only one line for command line
 set cmdheight=1
 
-" You will have bad experience for diagnostic messages when it's default 4000.
-set updatetime=300
-
-
-
 " === Completion Settings === "
 
 " Don't give completion messages like 'match 1 of 2'
 " or 'The only match'
-set shortmess+=f
+set shortmess+=c
 
 " Relative in normal mode, absolute in insert mode.
 set number relativenumber
@@ -102,27 +97,27 @@ call denite#custom#var('grep', 'final_opts', [])
 " Remove date from buffer list
 call denite#custom#var('buffer', 'date_format', '')
 
-" Open file commands
-call denite#custom#map('insert,normal', "<C-t>", '<denite:do_action:tabopen>')
-call denite#custom#map('insert,normal', "<C-v>", '<denite:do_action:vsplit>')
-call denite#custom#map('insert,normal', "<C-h>", '<denite:do_action:split>')
-
 " Custom options for Denite
-"   auto_resize             - Auto resize the Denite window height automatically.
-"   prompt                  - Customize denite prompt
-"   direction               - Specify Denite window direction as directly below current pane
-"   winminheight            - Specify min height for Denite window
-"   highlight_mode_insert   - Specify h1-CursorLine in insert mode
-"   prompt_highlight        - Specify color of prompt
-"   highlight_matched_char  - Matched characters highlight
-"   highlight_matched_range - matched range highlight
+"   split                       - Use floating window for Denite
+"   start_filter                - Start filtering on default
+"   auto_resize                 - Auto resize the Denite window height automatically.
+"   source_names                - Use short long names if multiple sources
+"   prompt                      - Customize denite prompt
+"   highlight_matched_char      - Matched characters highlight
+"   highlight_matched_range     - matched range highlight
+"   highlight_window_background - Change background group in floating window
+"   highlight_filter_background - Change background group in floating filter window
+"   winrow                      - Set Denite filter window to top
+"   vertical_preview            - Open the preview window vertically
+
 let s:denite_options = {'default' : {
 \ 'split': 'floating',
 \ 'start_filter': 1,
 \ 'auto_resize': 1,
 \ 'source_names': 'short',
-\ 'prompt': 'λ:',
-\ 'statusline': 0,
+\ 'prompt': 'λ ',
+\ 'highlight_matched_char': 'QuickFixLine',
+\ 'highlight_matched_range': 'Visual',
 \ 'winrow': 1,
 \ 'vertical_preview': 1
 \ }}
@@ -140,6 +135,7 @@ call s:profile(s:denite_options)
 catch
   echo 'Denite not installed. It should work after running :PlugInstall'
 endtry
+
 
 " === Coc.nvim === "
 
@@ -209,19 +205,13 @@ let g:airline#extensions#tabline#formatter = 'unique_tail'
 " Custom setup that removes filetype/whitespace from default vim airline bar
 let g:airline#extensions#default#layout = [['a', 'b', 'c'], ['x', 'z', 'warning', 'error']]
 
-let airline#extensions#coc#stl_format_err = '%E{[%e(#%fe)]}'
-
-let airline#extensions#coc#stl_format_warn = '%W{[%w(#%fw)]}'
-
-" Configure error/warning section to use coc.nvim
-let g:airline_section_error = '%{airline#util#wrap(airline#extensions#coc#get_error(),0)}'
-let g:airline_section_warning = '%{airline#util#wrap(airline#extensions#coc#get_warning(),0)}'
-
-" Hide the Nerdtree status line to avoid clutter
-let g:NERDTreeStatusline = ''
-
-" Disable vim-airline in preview mode
-let g:airline_exclude_preview = 1
+" Customize vim airline per filetype
+" 'nerdtree'  - Hide nerdtree status line
+" 'list'      - Only show file type plus current line number out of total
+let g:airline_filetype_overrides = {
+  \ 'nerdtree': [ get(g:, 'NERDTreeStatusline', ''), '' ],
+  \ 'list': [ '%y', '%l/%L'],
+  \ }
 
 " Enable powerline fonts
 let g:airline_powerline_fonts = 1
@@ -287,31 +277,8 @@ let g:ipython_cell_delimit_cells_by = 'tags'
 " Enable true color support
 set termguicolors
 
-set background=dark
-colorscheme gruvbox
-
-" Editor theme
-let g:gruvbox_contrast_dark = 'medium'
-let g:gruvbox_contrast_light = 'hard'
-
-" Toggle color
-nn <expr> <F5> g:colors_name == "gruvbox" ? ":colo github\<CR>" : ":set background=dark\<CR>:color gruvbox\<CR>"
-
 " Vim airline theme
 let g:airline_theme='gruvbox'
-
-" Add custom highlights in method that is executed every time a colorscheme is sourced
-" See https://gist.github.com/romainl/379904f91fa40533175dfaec4c833f2f for details
-" function! MyHighlights() abort
-  " " Hightlight trailing whitespace
-  " highlight Trail ctermbg=red guibg=red
-  " call matchadd('Trail', '\s\+$', 100)
-" endfunction
-
-" augroup MyColors
-  " autocmd!
-  " autocmd ColorScheme * call MyHighlights()
-" augroup END
 
 " Change vertical split character to be a space (essentially hide it)
 set fillchars+=vert:.
@@ -325,35 +292,52 @@ set noshowmode
 " Set floating window to be slightly transparent
 set winbl=10
 
-" coc.nvim color changes
-hi! link CocErrorSign WarningMsg
-hi! link CocWarningSign Number
-hi! link CocInfoSign Type
+" ============================================================================ "
+" ===                      CUSTOM COLORSCHEME CHANGES                      === "
+" ============================================================================ "
+"
+" Add custom highlights in method that is executed every time a colorscheme is sourced
+" See https://gist.github.com/romainl/379904f91fa40533175dfaec4c833f2f for details
+function! TrailingSpaceHighlights() abort
+  " Hightlight trailing whitespace
+  highlight Trail ctermbg=red guibg=red
+  call matchadd('Trail', '\s\+$', 100)
+endfunction
 
-" Make background transparent for many things
-hi! Normal ctermbg=NONE guibg=NONE
-hi! NonText ctermbg=NONE guibg=NONE
-hi! LineNr ctermfg=NONE guibg=NONE
-hi! SignColumn ctermfg=NONE guibg=NONE
-hi! StatusLine guifg=#16252b guibg=#6699CC
-hi! StatusLineNC guifg=#16252b guibg=#16252b
+function! s:custom_jarvis_colors()
+  " coc.nvim color changes
+  hi link CocErrorSign WarningMsg
+  hi link CocWarningSign Number
+  hi link CocInfoSign Type
 
-" Try to hide vertical spit and end of buffer symbol
-hi! VertSplit gui=NONE guifg=#17252c guibg=#17252c
-hi! EndOfBuffer ctermbg=NONE ctermfg=NONE guibg=#17252c guifg=#17252c
+  " Make background transparent for many things
+  hi Normal ctermbg=NONE guibg=NONE
+  hi NonText ctermbg=NONE guibg=NONE
+  hi LineNr ctermfg=NONE guibg=NONE
+  hi SignColumn ctermfg=NONE guibg=NONE
+  hi StatusLine guifg=#16252b guibg=#6699CC
+  hi StatusLineNC guifg=#16252b guibg=#16252b
 
-" Customize NERDTree directory
-hi! NERDTreeCWD guifg=#99c794
+  " Try to hide vertical spit and end of buffer symbol
+  hi VertSplit gui=NONE guifg=#17252c guibg=#17252c
+  hi EndOfBuffer ctermbg=NONE ctermfg=NONE guibg=#17252c guifg=#17252c
 
-" Make background color transparent for git changes
-hi! SignifySignAdd guibg=NONE
-hi! SignifySignDelete guibg=NONE
-hi! SignifySignChange guibg=NONE
+  " Customize NERDTree directory
+  hi NERDTreeCWD guifg=#99c794
 
-" Highlight git change signs
-hi! SignifySignAdd guifg=#99c794
-hi! SignifySignDelete guifg=#ec5f67
-hi! SignifySignChange guifg=#c594c5
+  " Make background color transparent for git changes
+  hi SignifySignAdd guibg=NONE
+  hi SignifySignDelete guibg=NONE
+  hi SignifySignChange guibg=NONE
+
+  " Highlight git change signs
+  hi SignifySignAdd guifg=#99c794
+  hi SignifySignDelete guifg=#ec5f67
+  hi SignifySignChange guifg=#c594c5
+endfunction
+
+autocmd! ColorScheme * call TrailingSpaceHighlights()
+autocmd! ColorScheme OceanicNext call s:custom_jarvis_colors()
 
 " Call method on window enter
 augroup WindowManagement
@@ -368,7 +352,25 @@ function! Handle_Win_Enter()
   endif
 endfunction
 
-" === vim-ledger === "
+" Editor theme
+set background=dark
+
+try
+  colorscheme gruvbox
+catch
+  colorscheme slate
+endtry
+
+" Editor theme
+let g:gruvbox_contrast_dark = 'medium'
+let g:gruvbox_contrast_light = 'hard'
+
+" Toggle color
+nn <expr> <F5> g:colors_name == "gruvbox" ? ":colo github\<CR>" : ":set background=dark\<CR>:color gruvbox\<CR>"
+
+" ============================================================================ "
+" ===                    VIM LEDGER                                        === "
+" ============================================================================ "
 " number of columns to fold text
 let g:ledger_maxwidth = 80
 
@@ -417,16 +419,25 @@ nnoremap <leader>j :<C-u>DeniteCursorWord grep:.<CR>
 "   <C-o>         - Switch to normal mode inside of search results
 "   <Esc>         - Exit denite window in any mode
 "   <CR>          - Open currently selected file in any mode
+"   <C-t>         - Open currently selected file in a new tab
+"   <C-v>         - Open currently selected file a vertical split
+"   <C-h>         - Open currently selected file in a horizontal split
 autocmd FileType denite-filter call s:denite_filter_my_settings()
 function! s:denite_filter_my_settings() abort
-imap <silent><buffer> <C-o>
-\ <Plug>(denite_filter_quit)
-inoremap <silent><buffer><expr> <Esc>
-\ denite#do_map('quit')
-nnoremap <silent><buffer><expr> <Esc>
-\ denite#do_map('quit')
-inoremap <silent><buffer><expr> <CR>
-\ denite#do_map('do_action')
+  imap <silent><buffer> <C-o>
+  \ <Plug>(denite_filter_update)
+  inoremap <silent><buffer><expr> <Esc>
+  \ denite#do_map('quit')
+  nnoremap <silent><buffer><expr> <Esc>
+  \ denite#do_map('quit')
+  inoremap <silent><buffer><expr> <CR>
+  \ denite#do_map('do_action')
+  inoremap <silent><buffer><expr> <C-t>
+  \ denite#do_map('do_action', 'tabopen')
+  inoremap <silent><buffer><expr> <C-v>
+  \ denite#do_map('do_action', 'vsplit')
+  inoremap <silent><buffer><expr> <C-h>
+  \ denite#do_map('do_action', 'split')
 endfunction
 
 " Define mappings while in denite window
@@ -435,22 +446,31 @@ endfunction
 "   d           - Delete currenly selected file
 "   p           - Preview currently selected file
 "   <C-o> or i  - Switch to insert mode inside of filter prompt
+"   <C-t>       - Open currently selected file in a new tab
+"   <C-v>       - Open currently selected file a vertical split
+"   <C-h>       - Open currently selected file in a horizontal split
 autocmd FileType denite call s:denite_my_settings()
 function! s:denite_my_settings() abort
-nnoremap <silent><buffer><expr> <CR>
-\ denite#do_map('do_action')
-nnoremap <silent><buffer><expr> q
-\ denite#do_map('quit')
-nnoremap <silent><buffer><expr> <Esc>
-\ denite#do_map('quit')
-nnoremap <silent><buffer><expr> d
-\ denite#do_map('do_action', 'delete')
-nnoremap <silent><buffer><expr> p
-\ denite#do_map('do_action', 'preview')
-nnoremap <silent><buffer><expr> i
-\ denite#do_map('open_filter_buffer')
-nnoremap <silent><buffer><expr> <C-o>
-\ denite#do_map('open_filter_buffer')
+  nnoremap <silent><buffer><expr> <CR>
+  \ denite#do_map('do_action')
+  nnoremap <silent><buffer><expr> q
+  \ denite#do_map('quit')
+  nnoremap <silent><buffer><expr> <Esc>
+  \ denite#do_map('quit')
+  nnoremap <silent><buffer><expr> d
+  \ denite#do_map('do_action', 'delete')
+  nnoremap <silent><buffer><expr> p
+  \ denite#do_map('do_action', 'preview')
+  nnoremap <silent><buffer><expr> i
+  \ denite#do_map('open_filter_buffer')
+  nnoremap <silent><buffer><expr> <C-o>
+  \ denite#do_map('open_filter_buffer')
+  nnoremap <silent><buffer><expr> <C-t>
+  \ denite#do_map('do_action', 'tabopen')
+  nnoremap <silent><buffer><expr> <C-v>
+  \ denite#do_map('do_action', 'vsplit')
+  nnoremap <silent><buffer><expr> <C-h>
+  \ denite#do_map('do_action', 'split')
 endfunction
 
 " === Nerdtree shorcuts === "
@@ -459,18 +479,40 @@ endfunction
 nmap <leader>n :NERDTreeToggle<CR>
 nmap <leader>f :NERDTreeFind<CR>
 
+"   <Space> - PageDown
+"   -       - PageUp
+noremap <Space> <PageDown>
+noremap - <PageUp>
+
+" Quick window switching
+nmap <C-h> <C-w>h
+nmap <C-j> <C-w>j
+nmap <C-k> <C-w>k
+nmap <C-l> <C-w>l
+
+" === coc.nvim === "
+"   <leader>dd    - Jump to definition of current symbol
+"   <leader>dr    - Jump to references of current symbol
+"   <leader>dj    - Jump to implementation of current symbol
+"   <leader>ds    - Fuzzy search current project symbols
+nmap <silent> <leader>dd <Plug>(coc-definition)
+nmap <silent> <leader>dr <Plug>(coc-references)
+nmap <silent> <leader>dj <Plug>(coc-implementation)
+nnoremap <silent> <leader>ds :<C-u>CocList -I -N --top symbols<CR>
+
 " === vim-better-whitespace === "
 "   <leader>y - Automatically remove trailing whitespace
 nmap <leader>y :StripWhitespace<CR>
 
 " === Search shorcuts === "
+"   <leader>h - Find and replace
 "   <leader>/ - Claer highlighted search terms while preserving history
+map <leader>h :%s///<left><left>
 nmap <silent> <leader>/ :nohlsearch<CR>
 
 " === Easy-motion shortcuts ==="
 "   <leader>w - Easy-motion highlights first word letters bi-directionally
 map <leader>w <Plug>(easymotion-bd-w)
-nmap <space> <Plug>(easymotion-bd-w)
 
 " Allows you to save files you opened without write permissions via sudo
 cmap w!! w !sudo tee %
@@ -570,14 +612,12 @@ set backupdir=~/.local/share/nvim/backup " Don't put backups in current dir
 set backup
 set noswapfile
 
-" Reload icons after init source
-if exists('g:loaded_webdevicons')
-  call webdevicons#refresh()
-endif
-
 " ================ "
 " === Markdown === "
 " ================ "
+"
+" Enable spellcheck for markdown files
+autocmd BufRead,BufNewFile *.md setlocal spell
 
 autocmd BufNewFile,BufFilePre,BufRead *.md set filetype=markdown
 
